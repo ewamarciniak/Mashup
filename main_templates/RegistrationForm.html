@@ -1,6 +1,10 @@
 <html>
   <head>
-                  <style type="text/css">
+      <script type="text/javascript" src="/js/jquery-1.5.1.min.js"></script>
+      <script type="text/javascript" src="/js/jquery.ui.core.js"></script>
+      <script type="text/javascript" src="/js/jquery.ui.widget.js"></script>
+      <script type="text/javascript" src="/js/jquery.ui.datepicker.js"></script>
+  <style type="text/css">
                     body
 	                {
 		                margin:0px;
@@ -32,8 +36,7 @@
                   }
               </style>
   </head>
-
-  <body>
+ <body>
   <h1 align=center>User Registration</h1>
     <form action="/sign" method="post">
     <table align=center class="tblheader">
@@ -44,14 +47,37 @@
     <tr><td>City/Town:</td><td><input type="text" name="town" /></td></tr>
     <tr><td>County:</td><td><input type="text" name="county" /></td></tr>
     <tr><td>Phone:</td><td><input type="text" name="phone" /></td></tr>
-    <tr><td>Calendar Link:</td><td><input type="text" name="callink" /></td></tr>
+    <tr><td>Calendar Link:</td><td><input type="text" name="callink" id="calendar_link"/></td></tr>
     </table>
-    <table align=center class="tblheader"
+    <table align=center class="tblheader">
     <tr><td>Brief Description of your Interests</td></tr>
     <tr><td><textarea cols="40" name="desc" rows="8"></textarea></td></tr>
     </table>
       <p align=center><input type="submit" value="Register" /></p>
     </form>
-
   </body>
+  <script type="text/javascript">
+      $('#calendar_link').focusout(resize_calendar);
+
+      function resize_calendar(){
+          calendar_link_input = $('#calendar_link').val();
+          if (calendar_link_input != "") {
+              calendar_link_arr = calendar_link_input.split("\"");
+              width_value = parseInt(calendar_link_arr[5]);
+              height_value = parseInt(calendar_link_arr[7]);
+
+              if (calendar_link_arr[4] == " width=" && calendar_link_arr[6] == " height="){
+                  if (width_value >=400) {
+                      calendar_link_arr[5] = "399";
+                  }
+                  if (height_value >=400) {
+                      calendar_link_arr[7] = "399";
+                  }
+              }else {
+                  alert("Wrong format of the link.")
+              }
+              document.getElementById("calendar_link").value = calendar_link_arr.join("\"");
+          };
+      }
+  </script>
 </html>

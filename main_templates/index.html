@@ -9,30 +9,35 @@
 	<script type="text/javascript" src="/js/jquery.ui.core.js"></script>
 	<script type="text/javascript" src="/js/jquery.ui.widget.js"></script>
 	<script type="text/javascript" src="/js/jquery.ui.datepicker.js"></script>
-    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=true&amp;key=ABQIAAAAWjhbOY0D3sv2pmdkVgqFURT5FMJh5cWC-P-IKueY88ewXzQdfxRril6YgDECCqK1rWib6H-TglhTqw" type="text/javascript"></script>
-
+    
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBJAXTPa9Xj7UJRpmlrr8BiQ2Mo7noMELA&sensor=true" type="text/javascript"></script>
+<style type="text/css">
+      #map {
+        height: 280px;
+        width: 280px;
+        border: 1px solid #333;
+        margin-top: 0.6em;
+      }
+    </style>
 <script type="text/javascript">
-        function load(x,y) {
-            if (GBrowserIsCompatible()) {
-                var map = new GMap2(document.getElementById("map"));
-                map.addControl(new GSmallMapControl());
-                map.addControl(new GMapTypeControl());
-                var center = new GLatLng(x,y);
-                map.setCenter(center, 15);
-                geocoder = new GClientGeocoder();
-                var marker = new GMarker(center, { draggable: true });
-                map.addOverlay(marker);
-                document.getElementById("lat").value = center.lat().toFixed(5);
-                document.getElementById("lng").value = center.lng().toFixed(5);
-            }
-        }
+    function load(x, y) {
+        var pyrmont = new google.maps.LatLng(x, y);
 
-        function map_load() {
-            x = document.getElementById("lat").value;
-            y = document.getElementById("lng").value;
-            load(x, y);
-        }
- 
+        map = new google.maps.Map(document.getElementById('map'), {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            center: pyrmont,
+            zoom: 15
+        });
+
+        var marker = new google.maps.Marker({ position: pyrmont, map: map, title: "Hello World!" });
+    }
+
+    function map_load() {
+        x = document.getElementById("lat").value;
+        y = document.getElementById("lng").value;
+        load(x, y);
+    }
+
     function load_2(css_ref, new_url) {
         $(css_ref).load(new_url);
     }
@@ -41,12 +46,13 @@
         sport1 = document.getElementById("sportinput").value;
         location1 = document.getElementById("locationinput").value;
 
-        var search_url = "http://jmccarthycalendar.appspot.com/search?";
+        var search_url = "http://mysportsfriendsapp.appspot.com/search?";
         var tmp = 0;
         if (sport1 == "Sport") {
             // No Sport input
         } else {
             search_url = search_url + "sport=" + sport1;
+            console.log(search_url);
             tmp = 1;
         }
 
@@ -60,12 +66,11 @@
             }
         }
         // alert(search_url);
-        // http://jmccarthycalendar.appspot.com/search?sport=Golf&location=naas
         CLoad('Search Results', search_url)
     }
 
     function AddEventToCalendar(eid, et, ed, dp, loc) {
-        var save_url = "http://jmccarthycalendar.appspot.com/AddUser?"
+        var save_url = "http://mysportsfriendsapp.appspot.com/AddUser?"
         save_url = save_url + "eventid=" + eid + "&";
         save_url = save_url + "event_title=" + et + "&";
         save_url = save_url + "event_description=" + ed + "&";
@@ -76,7 +81,7 @@
     }
 
     function accept_terms() {
-        var load = window.open('http://jmccarthycalendar.appspot.com/UserLogin', '', 'scrollbars=no,menubar=no,height=600,width=800,resizable=yes,toolbar=no,location=no,status=no');
+        var load = window.open('http://mysportsfriendsapp.appspot.com/UserLogin', '', 'scrollbars=no,menubar=no,height=600,width=800,resizable=yes,toolbar=no,location=no,status=no');
     }
 
 
@@ -110,11 +115,14 @@
         var url = str;
         xmlHttp2.onreadystatechange = stateChangedCLoad;
         xmlHttp2.open("GET", url, true);
+        xmlHttp2.setRequestHeader("Content-Type", "text/html; charset=utf-8");
+        xmlHttp2.timeout=0;
         xmlHttp2.send(null);
         xmlHttp2.close;
     }
     function stateChangedCLoad() {
-        if (xmlHttp2.readyState == 4) {
+        if (xmlHttp2.readyState==4 && xmlHttp2.status==200) {
+
             document.getElementById("lefttxtblank").innerHTML = "";
             document.getElementById("lefttxtblank").innerHTML = xmlHttp2.responseText;
         }
@@ -124,13 +132,24 @@
 <script type="text/javascript">
 <!--
     var delayTime = 1000
-    setTimeout(online, delayTime)
+    var loaded = false;
+    setTimeout(online, delayTime);
+
     function online() {
         if (document.getElementById("lat")) {
-            map_load()
-        }
+            if (!loaded) {
+            map_load();
+            loaded = true;
+            }
+            $("#lat").focusout(function(){
+                map_load();})
+            $("#lng").focusout(function(){
+                map_load();})
+        } else { loaded =false;}
         setTimeout(online, 1000)
     }
+
+
 //-->
 </script>
 
@@ -166,7 +185,7 @@
 		                font-family:Arial;
 		                font-size:18px;
 		                font-weight:normal;
-		                color:2a2a2a;
+		                color: #2a2a2a;
 	                }
 
               </style>
@@ -178,7 +197,7 @@
     <div id="contenttxtblank">
       <div id="menu">
         <ul>
-          <li><a href="http://jmccarthycalendar.appspot.com/" class="menu">Home</a></li>
+          <li><a href="http://mysportsfriendsapp.appspot.com/" class="menu">Home</a></li>
           <li class="menusap"></li>
           <li><a href="#" class="menu" onclick="CLoad('All Events','/events')">Events</a></li>
           <li class="menusap"></li>
@@ -274,5 +293,6 @@
     <div id="designedby">Designed by Super Coders</div>
   </div>
 </div>
+
 </body>
 </html>

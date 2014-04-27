@@ -8,105 +8,94 @@
 	<script type="text/javascript" src="/js/jquery.ui.core.js"></script>
 	<script type="text/javascript" src="/js/jquery.ui.widget.js"></script>
 	<script type="text/javascript" src="/js/jquery.ui.datepicker.js"></script>
-    <script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=true&amp;key=ABQIAAAAWjhbOY0D3sv2pmdkVgqFURT5FMJh5cWC-P-IKueY88ewXzQdfxRril6YgDECCqK1rWib6H-TglhTqw" type="text/javascript"></script>
+   
+   <script src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=places" type="text/javascript"></script>
 
     <script type="text/javascript">
+        function initialize() {
+            var mapOptions = {
+                center: new google.maps.LatLng(-33.8688, 151.2195),
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            var map = new google.maps.Map(document.getElementById('map_canvas'),
+          mapOptions);
 
-        function load() {
-            if (GBrowserIsCompatible()) {
-                var map = new GMap2(document.getElementById("map"));
-                map.addControl(new GSmallMapControl());
-                map.addControl(new GMapTypeControl());
-                var center = new GLatLng(53.34410, -6.26749);
-                map.setCenter(center, 15);
-                geocoder = new GClientGeocoder();
-                var marker = new GMarker(center, { draggable: true });
-                map.addOverlay(marker);
-                document.getElementById("lat").value = center.lat().toFixed(5);
-                document.getElementById("lng").value = center.lng().toFixed(5);
+            var input = document.getElementById('searchTextField');
+            var autocomplete = new google.maps.places.Autocomplete(input);
 
-                GEvent.addListener(marker, "dragend", function () {
-                    var point = marker.getPoint();
-                    map.panTo(point);
-                    document.getElementById("lat").value = point.lat().toFixed(5);
-                    document.getElementById("lng").value = point.lng().toFixed(5);
+            autocomplete.bindTo('bounds', map);
 
+            var infowindow = new google.maps.InfoWindow();
+            var marker = new google.maps.Marker({
+                map: map
+            });
+
+            google.maps.event.addListener(autocomplete, 'place_changed', function () {
+                infowindow.close();
+                var place = autocomplete.getPlace();
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);  // Why 17? Because it looks good.
+                }
+
+                var image = new google.maps.MarkerImage(
+              place.icon,
+              new google.maps.Size(71, 71),
+              new google.maps.Point(0, 0),
+              new google.maps.Point(17, 34),
+              new google.maps.Size(35, 35));
+                marker.setIcon(image);
+                marker.setPosition(place.geometry.location);
+
+                var address = '';
+                if (place.address_components) {
+                    address = [(place.address_components[0] &&
+                        place.address_components[0].short_name || ''),
+                       (place.address_components[1] &&
+                        place.address_components[1].short_name || ''),
+                       (place.address_components[2] &&
+                        place.address_components[2].short_name || '')
+                      ].join(' ');
+                }
+
+                infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
+                infowindow.open(map, marker);
+                var l = map.getCenter();
+                document.getElementById("lat").value = l.lat();
+                document.getElementById("lng").value = l.lng();
+                document.getElementById("location").value = document.getElementById("searchTextField").value;
+            });
+
+            // Sets a listener on a radio button to change the filter type on Places
+            // Autocomplete.
+            function setupClickListener(id, types) {
+                var radioButton = document.getElementById(id);
+                google.maps.event.addDomListener(radioButton, 'click', function () {
+                    autocomplete.setTypes(types);
                 });
-
-
-                GEvent.addListener(map, "moveend", function () {
-                    map.clearOverlays();
-                    var center = map.getCenter();
-                    var marker = new GMarker(center, { draggable: true });
-                    map.addOverlay(marker);
-                    document.getElementById("lat").value = center.lat().toFixed(5);
-                    document.getElementById("lng").value = center.lng().toFixed(5);
-
-
-                    GEvent.addListener(marker, "dragend", function () {
-                        var point = marker.getPoint();
-                        map.panTo(point);
-                        document.getElementById("lat").value = point.lat().toFixed(5);
-                        document.getElementById("lng").value = point.lng().toFixed(5);
-
-                    });
-
-                });
-
             }
+
+            setupClickListener('changetype-all', []);
+            setupClickListener('changetype-establishment', ['establishment']);
+            setupClickListener('changetype-geocode', ['geocode']);
         }
-
-        function showAddress(address) {
-            var map = new GMap2(document.getElementById("map"));
-            map.addControl(new GSmallMapControl());
-            map.addControl(new GMapTypeControl());
-            if (geocoder) {
-                geocoder.getLatLng(
-          address,
-          function (point) {
-              if (!point) {
-                  alert(address + " not found");
-              } else {
-                  document.getElementById("lat").value = point.lat().toFixed(5);
-                  document.getElementById("lng").value = point.lng().toFixed(5);
-                  document.getElementById("location").value = document.getElementById("address").value;
-                  map.clearOverlays()
-                  map.setCenter(point, 14);
-                  var marker = new GMarker(point, { draggable: true });
-                  map.addOverlay(marker);
-
-                  GEvent.addListener(marker, "dragend", function () {
-                      var pt = marker.getPoint();
-                      map.panTo(pt);
-                      document.getElementById("lat").value = pt.lat().toFixed(5);
-                      document.getElementById("lng").value = pt.lng().toFixed(5);
-                  });
-
-
-                  GEvent.addListener(map, "moveend", function () {
-                      map.clearOverlays();
-                      var center = map.getCenter();
-                      var marker = new GMarker(center, { draggable: true });
-                      map.addOverlay(marker);
-                      document.getElementById("lat").value = center.lat().toFixed(5);
-                      document.getElementById("lng").value = center.lng().toFixed(5);
-                      
-                      GEvent.addListener(marker, "dragend", function () {
-                          var pt = marker.getPoint();
-                          map.panTo(pt);
-                          document.getElementById("lat").value = pt.lat().toFixed(5);
-                          document.getElementById("lng").value = pt.lng().toFixed(5);
-                          document.getElementById("location").value = document.getElementById("address").value;
-                      });
-
-                  });
-
-              }
-          }
-        );
-            }
-        }
+        google.maps.event.addDomListener(window, 'load', initialize); 
     </script>
+
+     <style type="text/css">
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+      #map_canvas {
+        height: 280px;
+        width: 280px;
+        margin-top: 0.6em;
+      }
+    </style>
     
                   <style type="text/css">
                     body
@@ -141,7 +130,7 @@
               </style>
 </head>
 
-<body onload="load()" onunload="GUnload()" >
+<body>
           <table border=0 width=530px class="eventheader">
               <tr>
                   <td>
@@ -169,19 +158,12 @@
                                                     
                      </form>
                   </td>
-                  <td valign=top>
-                      <form action="#" onsubmit="showAddress(this.address.value); return false">
-                         <p>  
-                          <br />      
-                          <input type="text" size="25" name="address" id="address" value="Dublin Ireland" />
-                          <input type="submit" value="Search!" />
-                          </p>
-                      </form>
-
-                      <p>
-                      <div align="center" id="map" style="width: 300px; height: 250px"><br/></div>
-                       </p>
-                      </div>
+                 <td valign=top>
+                     Location:<br />                      
+                      <div>
+					      <input id="searchTextField" type="text" size="40">
+					  </div>
+					  <div id="map_canvas"></div>
                   </td>
               </tr>
           </table>
